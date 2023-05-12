@@ -1,7 +1,12 @@
 const path = require('path')
 const fs = require('fs')
 
-function getSliderbar(originPath) {
+/**
+ * 递归将文件夹转化为树结构
+ * @param {string} originPath 
+ * @returns {object} sliderbar树结构
+ */
+function getSliderbar(originPath, parent, grandpa) {
   if (!fs.existsSync(originPath)) return
 
   const res = []
@@ -9,90 +14,66 @@ function getSliderbar(originPath) {
 
   for (const item of dirData) {
     const childPath = path.resolve(originPath, item)
-    // if(filterFile(childPath, item)) return
+    if(filterFile(childPath, item)) continue
 
     const childStats = fs.statSync(childPath)
-
     if (childStats.isDirectory()) {
-      const fildDir = isFileDir(childPath) // 命中子文件没有文件夹情况 返回文件夹下唯一md文件
-      if (fildDir !== '' && fildDir) {
-        isFileHandle(fildDir, res)
-      } else {
-        const children = getSliderbar(childPath)
-
-        if (children.length !== 0) {
-          let target = {
-            text: item,
-            sidebarDepth: 0,
-            items: children,
-            collapsible: true,  // 菜单是否为可折叠的 
-            collapsed: true,  // 是否默认折叠
-          }
-
-          const dirLink = getDirLink(childPath)
-          if(dirLink) {
-            target.link = '/' + dirLink
-          }
-
-          res.push(target)
+      const children = getSliderbar(childPath, res, parent)
+      findReadme(childPath, res)
+      if (children.length !== 0) {
+        let target = {
+          text: item,
+          sidebarDepth: 0,
+          items: children,
+          collapsible: true,  // 菜单是否为可折叠的 
+          collapsed: true,  // 是否默认折叠
         }
+
+        const dirLink = getDirLink(childPath)
+        if(dirLink) {
+          target.link = '/' + dirLink
+        }
+
+        res.push(target)
       }
     }
 
-    if (childStats.isFile() && childPath.slice(-2) === 'md') {
-      // isFileHandle(childPath, res)
+    if (childStats.isFile()) {
+      const filePath = childPath.slice(childPath.indexOf('docs') + 5).replace(/\\/g, '/')
+      const filePathArr = filePath.split('/')
+      const fileName = filePathArr[filePathArr.length - 1]
+
+      if(!((/read/i).test(fileName) && (/md/i).test(fileName))) {
+        res.push({
+          link: '/' + filePath,
+          text: fileName,
+        })
+      }
     }
   }
 
   return res
 }
 
-function isFileHandle(childPath, res) {
-  const extName = childPath.slice(-2)
-  let noteName = ''
-
-  if (extName !== 'md') return
-
-  if (!fs.existsSync(childPath)) return
-
-  let mdPath = childPath.slice(childPath.indexOf('docs') + 5).replace(/\\/g, '/')
-
-  const fileName = mdPath.split('/').slice(-1)[0]
-
-  const mdPathArr = mdPath.split('/')
-
-  if (fileName === 'README.md' || fileName === 'readme.md') {
-    noteName = mdPathArr[mdPathArr.length - 2]
-  } else {
-    noteName = mdPathArr[mdPathArr.length - 1].slice(0, -3)
-  }
-
-  res.push({
-    link: '/' + mdPath,
-    text: noteName,
-  })
-}
-
-function isFileDir(dirPath) {
+function findReadme(dirPath, res) {
   if (!fs.existsSync(dirPath)) return
-
   const dirData = fs.readdirSync(dirPath)
-  let mdFile = ''
-
-  for (const item of dirData) {
-    const childPath = path.resolve(dirPath, item)
-    const stats = fs.statSync(childPath)
-
-    if (stats.isDirectory()) {
-      return false
-    }
-
-    if (item.slice(-2) === 'md') {
-      mdFile = childPath
+  const fileName = dirData[0]
+  
+  if(dirData.length === 1 && dirData[0]) {
+    if((/read/i).test(fileName) && (/md/i).test(fileName)) {
+      const filePathArr = dirPath.replace(/\\/g, '/').split('/')
+      const name = filePathArr[filePathArr.length - 1]
+      res.push({
+        link: '/' + dirPath + '/' + fileName,
+        text: name,
+      })
     }
   }
 
-  return mdFile
+  if(dirData.length !== 1) {
+    // TODO: 组链接
+  }
 }
 
 function getDirLink(dirPath) {
@@ -109,6 +90,12 @@ function getDirLink(dirPath) {
   }
 }
 
+/**
+ * 过滤非.md文件
+ * @param {string} dirItemPath 
+ * @param {string} dirItem 
+ * @returns {boolean}
+ */
 function filterFile(dirItemPath, dirItem) {
   if (!fs.existsSync(dirItemPath)) return false
   const stat = fs.statSync(dirItemPath)
