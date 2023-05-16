@@ -3,10 +3,10 @@ const fs = require('fs')
 
 /**
  * 递归将文件夹转化为树结构
- * @param {string} originPath 
+ * @param {string} originPath
  * @returns {object} sliderbar树结构
  */
-function getSliderbar(originPath, parent, grandpa) {
+function getSliderbar(originPath) {
   if (!fs.existsSync(originPath)) return
 
   const res = []
@@ -14,39 +14,62 @@ function getSliderbar(originPath, parent, grandpa) {
 
   for (const item of dirData) {
     const childPath = path.resolve(originPath, item)
-    if(filterFile(childPath, item)) continue
+    if (filterFile(childPath, item)) continue
 
     const childStats = fs.statSync(childPath)
-    if (childStats.isDirectory()) {
-      const children = getSliderbar(childPath, res, parent)
-      findReadme(childPath, res)
-      if (children.length !== 0) {
-        let target = {
-          text: item,
-          sidebarDepth: 0,
-          items: children,
-          collapsible: true,  // 菜单是否为可折叠的 
-          collapsed: true,  // 是否默认折叠
-        }
 
-        const dirLink = getDirLink(childPath)
-        if(dirLink) {
-          target.link = '/' + dirLink
+    if (childStats.isDirectory()) { // 判断是否是文件
+      const children = getSliderbar(childPath)
+      if (!fs.existsSync(childPath)) return
+      const dirData = fs.readdirSync(childPath)
+      
+      if (dirData.length === 1 && dirData[0]) { // 文件夹下只有一个文件的情况
+        const fileName = dirData[0]
+        if (/read/i.test(fileName) && /md/i.test(fileName)) {
+          const filePathArr = childPath.replace(/\\/g, '/').split('/')
+          const name = filePathArr[filePathArr.length - 1]
+          res.push({
+            text: name,
+            link: '/' + childPath + '/' + fileName,
+          })
         }
+      }
+      
+      if (dirData.length !== 1) { // 文件夹有多个文件 如果有README.md文件 就给文件夹link
+        // console.log(dirData)
+        if (children.length !== 0) {
+          let target = {
+            text: item,
+            sidebarDepth: 0,
+            items: children,
+            collapsible: true, // 菜单是否为可折叠的
+            collapsed: true, // 是否默认折叠
+          }
 
-        res.push(target)
+          const dirLink = dirData.find((item) => item === 'README.md')
+          if (dirLink) {
+            target.link = '/' + childPath + '/README.md'
+          }
+
+          res.push(target)
+        }else {
+          res.push({
+            link: '/' + childPath + '/README.md',
+            text: item,
+          })
+        }
       }
     }
 
-    if (childStats.isFile()) {
+    if (childStats.isFile()) {  // 普通md文件 非README情况
       const filePath = childPath.slice(childPath.indexOf('docs') + 5).replace(/\\/g, '/')
       const filePathArr = filePath.split('/')
       const fileName = filePathArr[filePathArr.length - 1]
 
-      if(!((/read/i).test(fileName) && (/md/i).test(fileName))) {
+      if (!(/read/i.test(fileName) && /md/i.test(fileName))) {
         res.push({
           link: '/' + filePath,
-          text: fileName,
+          text: fileName.replace('.md', ''),
         })
       }
     }
@@ -55,55 +78,20 @@ function getSliderbar(originPath, parent, grandpa) {
   return res
 }
 
-function findReadme(dirPath, res) {
-  if (!fs.existsSync(dirPath)) return
-  const dirData = fs.readdirSync(dirPath)
-  const fileName = dirData[0]
-  
-  if(dirData.length === 1 && dirData[0]) {
-    if((/read/i).test(fileName) && (/md/i).test(fileName)) {
-      const filePathArr = dirPath.replace(/\\/g, '/').split('/')
-      const name = filePathArr[filePathArr.length - 1]
-      res.push({
-        link: '/' + dirPath + '/' + fileName,
-        text: name,
-      })
-    }
-  }
-
-  if(dirData.length !== 1) {
-    // TODO: 组链接
-  }
-}
-
-function getDirLink(dirPath) {
-  if (!fs.existsSync(dirPath)) return
-
-  const dirData = fs.readdirSync(dirPath)
-  for (const item of dirData) {
-    const childPath = path.resolve(dirPath, item)
-    const stats = fs.statSync(childPath)
-
-    if (item.slice(-2) === 'md') {
-      return childPath
-    }
-  }
-}
-
 /**
  * 过滤非.md文件
- * @param {string} dirItemPath 
- * @param {string} dirItem 
+ * @param {string} dirItemPath
+ * @param {string} dirItem
  * @returns {boolean}
  */
 function filterFile(dirItemPath, dirItem) {
   if (!fs.existsSync(dirItemPath)) return false
   const stat = fs.statSync(dirItemPath)
 
-  if(stat.isDirectory()) return false
+  if (stat.isDirectory()) return false
 
-  if(stat.isFile()) {
-    return !(/.md/g.test(dirItem))
+  if (stat.isFile()) {
+    return !/.md/g.test(dirItem)
   }
 
   return false

@@ -14,18 +14,17 @@ const dirPath = path.resolve(__filename, '../../note')
 
 const config = {
   title: "Qzr's Note",
-  outDir: '../../dist',
+  description: 'Just playing around.',
+  outDir: '../dist',
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Note', link: '/note/README.md' },
+      { text: 'Note', link: '/note/README.html' },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/HoldSworder" }],
     lastUpdatedText: "最近更新时间",
     docFooter: { prev: '上一篇', next: '下一篇' },
-    sidebar: {
-      '/note/': getSliderbar(dirPath)
-    },
+    sidebar: getSliderbar(dirPath),
   },
   lastUpdated: true,  // 开启最近更新时间
 }

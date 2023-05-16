@@ -1,5 +1,5 @@
 ---
-layout: doc
+layout: home
 title: 主页
 lang: en-US
 heroText: Qzr's Note
