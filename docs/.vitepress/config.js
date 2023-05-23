@@ -12,7 +12,7 @@ const path = require('path')
 
 const dirPath = path.resolve(__filename, '../../note')
 
-const config = {
+export default defineConfig({
   title: "Qzr's Note",
   description: 'Just playing around.',
   outDir: '../dist',
@@ -25,8 +25,13 @@ const config = {
     lastUpdatedText: "最近更新时间",
     docFooter: { prev: '上一篇', next: '下一篇' },
     sidebar: getSliderbar(dirPath),
+    search: {
+      provider: 'local'
+    },
+    editLink: {
+			pattern: 'https://github.com/HoldSworder/note/',
+			text: '在 GitHub 查看此页面',
+		},
   },
   lastUpdated: true,  // 开启最近更新时间
-}
-
-export default defineConfig(config)
+})
