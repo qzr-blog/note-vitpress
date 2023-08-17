@@ -1,5 +1,5 @@
-const path = require('path')
-const fs = require('fs')
+import path from 'path'
+import fs from 'fs'
 
 /**
  * 递归将文件夹转化为树结构
@@ -14,6 +14,7 @@ function getSliderbar(originPath) {
 
   for (const item of dirData) {
     const childPath = path.resolve(originPath, item)
+    console.log(childPath)
     if (filterFile(childPath, item)) continue
 
     const childStats = fs.statSync(childPath)

@@ -3,12 +3,12 @@
  * @Description  : vueperss config
  * @Autor        : Qzr(z5021996@vip.qq.com)
  * @LastEditors  : Qzr(z5021996@vip.qq.com)
- * @LastEditTime : 2020-10-16 15:02:53
+ * @LastEditTime : 2023-08-17 11:03:34
  */
 
 import { defineConfig } from 'vitepress';
 import getSliderbar from './sidebar'
-const path = require('path')
+import path from 'path'
 
 const dirPath = path.resolve(__filename, '../../note')
 
