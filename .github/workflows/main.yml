@@ -37,5 +37,5 @@ jobs:
       with:
         context: .
         push: true
-        tags: constq/page-blog:back-v1
+        tags: constq/page-blog:note-vitepress
 
