@@ -2,7 +2,7 @@ name: Docker Image CI
 on:
   repository_dispatch:
     types: [note-update]
-    
+
   workflow_dispatch:
     inputs:
       custom-parameter:  # 定义自定义输入参数（可选）
@@ -17,6 +17,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Configure Git
+      run: |
+        git config --global user.email "github-actions[bot]@z5021996@vip.qq.com"
+        git config --global user.name "GitHub Actions"
+        git config --global credential.helper store  # 存储凭据以供后续操作使用
 
     - name: Update submodule
       run: |
