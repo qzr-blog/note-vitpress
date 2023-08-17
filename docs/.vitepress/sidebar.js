@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 
+const BasePath = path.resolve(__filename, '../../')
 /**
  * 递归将文件夹转化为树结构
  * @param {string} originPath
@@ -14,7 +15,6 @@ function getSliderbar(originPath) {
 
   for (const item of dirData) {
     const childPath = path.resolve(originPath, item)
-    console.log(childPath)
     if (filterFile(childPath, item)) continue
 
     const childStats = fs.statSync(childPath)
@@ -31,7 +31,7 @@ function getSliderbar(originPath) {
           const name = filePathArr[filePathArr.length - 1]
           res.push({
             text: name,
-            link: '/' + childPath + '/' + fileName,
+            link: exportPath('/' + childPath + '/' + fileName),
           })
         }
       }
@@ -49,13 +49,13 @@ function getSliderbar(originPath) {
 
           const dirLink = dirData.find((item) => item === 'README.md')
           if (dirLink) {
-            target.link = '/' + childPath + '/README.md'
+            target.link = exportPath('/' + childPath + '/README.md')
           }
 
           res.push(target)
         }else {
           res.push({
-            link: '/' + childPath + '/README.md',
+            link: exportPath('/' + childPath + '/README.md'),
             text: item,
           })
         }
@@ -96,6 +96,10 @@ function filterFile(dirItemPath, dirItem) {
   }
 
   return false
+}
+
+function exportPath(pathStr) {
+  return path.relative(BasePath, pathStr)
 }
 
 export default getSliderbar
