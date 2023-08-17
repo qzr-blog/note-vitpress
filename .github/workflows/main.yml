@@ -2,6 +2,12 @@ name: Docker Image CI
 on:
   repository_dispatch:
     types: [note-update]
+    
+  workflow_dispatch:
+    inputs:
+      custom-parameter:  # 定义自定义输入参数（可选）
+        description: 'Custom parameter for manual triggering'
+        required: false
 
 jobs:
   Deployment:
